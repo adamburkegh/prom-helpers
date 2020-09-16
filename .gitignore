@@ -1,11 +1,8 @@
 /bin/
 build/
-gradle/
 .gradle/
 target/
 .settings/
 .classpath
 .project
-gradlew.bat
-gradlew
 *.swp
