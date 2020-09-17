@@ -1,6 +1,6 @@
 
 plugins {
-    id 'java'
+    id 'java-library'
     id 'maven-publish'
 }
 
@@ -29,10 +29,9 @@ dependencies {
     // Latest is implementation 'prom:StochasticPetriNets:6.10.170'
     // but resolving that in the prom repo is not working, probably because 
     // they are zip files not in a specific revision directory
-    implementation 'prom:StochasticPetriNets:latest'
-    implementation 'org.apache.logging.log4j:log4j-api:2.8.2'
-    implementation 'org.apache.logging.log4j:log4j-core:2.8.2'
-    implementation 'org.simpleframework:simple-xml:2.7.1'
+    api 'prom:StochasticPetriNets:latest'
+    api 'org.apache.logging.log4j:log4j-api:2.8.2' 
+    api 'org.apache.logging.log4j:log4j-core:2.8.2'
     testImplementation 'junit:junit:4.11'
 }
 
