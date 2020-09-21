@@ -8,12 +8,20 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.deckfour.xes.classification.XEventClassifier;
 import org.deckfour.xes.classification.XEventNameClassifier;
+import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XLog;
 
 public class XESLogUtils {
 
+	public static final String XES_CONCEPT_NAME = "concept:name";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 
+	public static String getLogName(XLog log) {
+		XAttribute nameAttr = log.getAttributes().get(XES_CONCEPT_NAME);
+		return nameAttr == null ? "" : nameAttr.toString();
+	}
+	
 	public static XEventClassifier detectNameBasedClassifier(XLog log) {
 		LOGGER.debug( "Detected classifiers: {} ", log.getClassifiers());
 		XEventClassifier nameClassifier = new XEventNameClassifier();
