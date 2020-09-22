@@ -35,6 +35,10 @@ dependencies {
     testImplementation 'junit:junit:4.11'
 }
 
+java{
+    withSourcesJar()
+}
+
 group = 'qut.pm'
 version = '0.8-SNAPSHOT'
 description = 'prom-helpers'

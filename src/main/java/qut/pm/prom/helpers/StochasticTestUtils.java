@@ -26,8 +26,8 @@ public class StochasticTestUtils {
 	
 
 	public static void initializeLogging() {
-		// ugh TODO log4j 2 warns against the volatility of this API
-		// but we're not using maven and we don't have a reliable path
+		// log4j 2 warns against the volatility of this API
+		// but we don't have a reliable path
 		LoggerContext context = (LoggerContext) LogManager.getContext(false);
 		Configuration config = context.getConfiguration();
 		LoggerConfig rootConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
