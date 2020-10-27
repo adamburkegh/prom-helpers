@@ -29,6 +29,13 @@ public class StochasticPetriNetUtils {
 	
 	private static final double EPSILON = 0.00001d;
 
+	/**
+	 * Doesn't work for nets with duplicate labels. 
+	 * 
+	 * @param o1
+	 * @param o2
+	 * @return
+	 */
 	public static boolean areEqual(StochasticNet o1, StochasticNet o2) {
 		if (o1 == null && o2 == null)
 			return true;
