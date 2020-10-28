@@ -44,6 +44,69 @@ public class PetriNetFragmentParserTest {
 	}
 
 	@Test
+	public void tranWithId() {
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("I");
+		Transition ta1 = expected.addTransition("a");
+		Place finalPlace = expected.addPlace("F");
+		expected.addArc(initialPlace, ta1);
+		expected.addArc(ta1,finalPlace);
+		PetriNetFragmentParser parser = new PetriNetFragmentParser();
+		StochasticNet net = new StochasticNetImpl("pf");
+		parser.addToNet(net, "I -> [a__1] -> F");
+		assertTrue( StochasticPetriNetUtils.areEqual(expected, net) );
+	}
+	
+	@Test
+	public void dupeTranWithId() {
+		NodeMapper nm1 = new NodeMapper();
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("I");
+		Transition ta1 = expected.addTransition("a");
+		nm1.put(ta1.getId(), "a__1");
+		Transition ta2 = expected.addTransition("a");
+		nm1.put(ta2.getId(), "a__2");
+		Place finalPlace = expected.addPlace("F");
+		expected.addArc(initialPlace, ta1);
+		expected.addArc(ta1,finalPlace);
+		expected.addArc(initialPlace, ta2);
+		expected.addArc(ta2,finalPlace);
+		PetriNetFragmentParser parser = new PetriNetFragmentParser();
+		StochasticNet net = new StochasticNetImpl("pf");
+		NodeMapper nm2 = parser.addToNet(net, 
+							 "I -> [a__1] -> F");
+		parser.addToNet(net, "I -> [a__2] -> F");
+		assertTrue( StochasticPetriNetUtils.areEqualWithDupes(expected, net, nm1, nm2) );
+	}
+
+	@Test
+	public void dupeTranWithPartialId() {
+		NodeMapper nm1 = new NodeMapper();
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("I");
+		Transition ta1 = expected.addTransition("a");
+		nm1.put(ta1.getId(), "a__1");
+		Transition ta2 = expected.addTransition("a");
+		nm1.put(ta2.getId(), "a__2");
+		Transition tb = expected.addTransition("b");
+		nm1.put(tb.getId(), "b");
+		Place finalPlace = expected.addPlace("F");
+		expected.addArc(initialPlace, ta1);
+		expected.addArc(ta1,finalPlace);
+		expected.addArc(initialPlace, ta2);
+		expected.addArc(ta2,finalPlace);
+		expected.addArc(initialPlace, tb);
+		expected.addArc(tb,finalPlace);
+		PetriNetFragmentParser parser = new PetriNetFragmentParser();
+		StochasticNet net = new StochasticNetImpl("pf");
+		NodeMapper nm2 = parser.addToNet(net, 
+							 "I -> [a__1] -> F");
+		parser.addToNet(net, "I -> [a__2] -> F");
+		parser.addToNet(net, "I -> [b]    -> F");
+		assertTrue( StochasticPetriNetUtils.areEqualWithDupes(expected, net, nm1, nm2) );
+	}
+	
+	@Test
 	public void weightedTransition() {
 		StochasticNet expected = new StochasticNetImpl("expected");
 		Place initialPlace = expected.addPlace("I");

@@ -1,5 +1,6 @@
 package qut.pm.prom.helpers;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -42,14 +43,20 @@ import org.processmining.models.semantics.petrinet.Marking;
  * TRANSITION_SUBNET 	:: TRANSITION EDGE PLACE EDGE TRANSITION_SUBNET
  * TRANSITION_SUBNET 	:: TRANSITION 
  * TRANSITION        	:: SIMPLE_TRANSITION || WEIGHTED_TRANSITION
- * SIMPLE_TRANSITION 	:: '[' LABEL ']'
+ * SIMPLE_TRANSITION 	:: TRAN_START TRAN_LABEL TRAN_END
  * WEIGHTED_TRANSITION  :: WEIGHTED_TRAN_VALUE | WEIGHTED_TRAN_DEFAULT
  * WEIGHTED_TRAN_VALUE  :: '{' LABEL WEIGHT '}'
  * WEIGHTED_TRAN_DEFAULT:: '{' LABEL '}'
  * WEIGHT			 	:: [0-9].[0-9]*
+ * TRAN_LABEL			:: LABEL || ID_LABEL
+ * ID_LABEL				:: LABEL ID_PREFIX ID
  * PLACE             	:: LABEL
- * EDGE              	:: '->' 
+ * EDGE              	:: '->'
+ * SIMPLE_TRAN_START	:: '['
+ * SIMPLE_TRAN_END		:: ']' 
+ * ID_PREFIX			:: '__'
  * LABEL             	:: alphanumeric string
+ * ID             		:: numeric string
  * </pre>
  *
  * Doesn't work for extended codepoints (eg UTF-16).
@@ -59,16 +66,22 @@ import org.processmining.models.semantics.petrinet.Marking;
  */
 public class PetriNetFragmentParser{
 
+	private static String ID_LEXEME = "__";
+	
 	private static enum TokenInfo{
-		SIMPLE_TRANSITION("\\[[a-zA-Z][a-zA-Z0-9]*\\]"),
 		WEIGHTED_DEFAULT_TRANSITION("\\{[a-zA-Z][a-zA-Z0-9]*\\}"),
 		WEIGHTED_VALUE_TRANSITION("\\{[a-zA-Z][a-zA-Z0-9]*\\s[0-9]*\\.[0-9]*\\}"),
+		SIMPLE_TRAN_START("\\["),
+		SIMPLE_TRAN_END("\\]"),
+		ID_PREFIX(ID_LEXEME),
 		EDGE("->"),
-		PLACE("[a-zA-Z][a-zA-Z0-9]*"),
+		LABEL("[a-zA-Z][a-zA-Z0-9]*"),
+		ID("[0-9]+"),
 		TERMINAL("");
 
 		public static final TokenInfo[] LEX_VALUES = 
-				{SIMPLE_TRANSITION,WEIGHTED_DEFAULT_TRANSITION,WEIGHTED_VALUE_TRANSITION,EDGE,PLACE}; 
+				{WEIGHTED_DEFAULT_TRANSITION,WEIGHTED_VALUE_TRANSITION,
+						SIMPLE_TRAN_START,SIMPLE_TRAN_END,ID_PREFIX,EDGE,LABEL,ID}; 
 		
 		private Pattern pattern;
 		
@@ -112,16 +125,19 @@ public class PetriNetFragmentParser{
 	private Token lookahead = null;
 	private StochasticNet net;
 	private Map<String,PetrinetNode> nodeLookup = new HashMap<>();
+	private NodeMapper nodeMapper = new NodeMapper();
 	
-	public void addToNet(StochasticNet net, String netText) {
+	public NodeMapper addToNet(StochasticNet net, String netText) {
 		tokenize(netText);
 		this.net = net;
 		parse();
+		return nodeMapper ;
 	}
 	
 	public StochasticNet createNet(String label, String netText) {
 		StochasticNet net = new StochasticNetImpl(label);
 		nodeLookup = new HashMap<>();
+		nodeMapper = new NodeMapper();
 		addToNet(net,netText);
 		return net;
 	}
@@ -271,7 +287,7 @@ public class PetriNetFragmentParser{
 
 	private Transition transition() {
 		Transition transition = null;
-		if (lookahead.tokenInfo.equals(TokenInfo.SIMPLE_TRANSITION)) {
+		if (lookahead.tokenInfo.equals(TokenInfo.SIMPLE_TRAN_START)) {
 			transition = simpleTransition();
 		}
 		if (lookahead.tokenInfo.equals(TokenInfo.WEIGHTED_VALUE_TRANSITION)) {
@@ -313,16 +329,55 @@ public class PetriNetFragmentParser{
 	}
 
 	private Transition simpleTransition() {
-		Transition transition;
-		String label = lookahead.sequence.substring(1,lookahead.sequence.length()-1);
-		transition = checkExistingTransition(label);
+		Transition transition = null;
+		nextToken();
+		String label = "";
+		String id = "";
+		if (lookahead.tokenInfo.equals(TokenInfo.LABEL)) {
+			label = tranLabel();
+			nextToken();
+		}else {
+			throw new RuntimeException("Expected label, but found " + lookahead );
+		}
+		if (lookahead.tokenInfo.equals(TokenInfo.SIMPLE_TRAN_END)) {
+			transition = checkExistingTransition(label);
+		}else if (lookahead.tokenInfo.equals(TokenInfo.ID_PREFIX)){
+			transition = null;
+			nextToken();
+			id = id();
+			nextToken();
+			if (!lookahead.tokenInfo.equals(TokenInfo.SIMPLE_TRAN_END)) {
+				tokenError(TokenInfo.SIMPLE_TRAN_END,TokenInfo.ID_PREFIX);				
+			}
+		}else {
+			tokenError(TokenInfo.SIMPLE_TRAN_END,TokenInfo.ID_PREFIX);
+		}
 		if (transition == null) {
 			transition = net.addTransition(label);
 			nodeLookup.put(label,transition);
+			if (!id.isEmpty()) {
+				nodeMapper.put(transition.getId(), label + ID_LEXEME + id);
+			}else {
+				nodeMapper.put(transition.getId(), label);
+			}
 		}
 		return transition;
 	}
+
+	private String id() {
+		return lookahead.sequence;
+	}
+
+	private void tokenError(TokenInfo ... tokens) {
+		
+		throw new RuntimeException("Expected one of " + Arrays.toString(tokens) 
+								+ ", but found " + lookahead );
+	}
 	
+	private String tranLabel() {
+		return lookahead.sequence;
+	}
+
 	private Transition checkExistingTransition(String label) {
 		return (Transition)checkExistingNode(label,Transition.class);
 	}

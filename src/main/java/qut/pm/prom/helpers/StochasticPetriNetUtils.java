@@ -18,6 +18,7 @@ import org.processmining.models.graphbased.directed.petrinet.StochasticNet;
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
 import org.processmining.models.graphbased.directed.petrinet.elements.TimedTransition;
 import org.processmining.models.graphbased.directed.petrinet.elements.Transition;
+import org.processmining.models.graphbased.directed.petrinet.impl.StochasticNetMappingCloner;
 import org.processmining.models.graphbased.directed.utils.GraphIterator;
 import org.processmining.models.graphbased.directed.utils.GraphIterator.EdgeAcceptor;
 import org.processmining.models.graphbased.directed.utils.GraphIterator.NodeAcceptor;
@@ -41,15 +42,12 @@ public class StochasticPetriNetUtils {
 			return true;
 		if (o1 == null || o2 == null)
 			return false;
-		Map<String,Place> o1PlaceMap = o1.getPlaces().stream().collect(
-										Collectors.toMap(Place::getLabel, Function.identity()));
-		for (Place p: o2.getPlaces()) {
-			Place o1Place = o1PlaceMap.get(p.getLabel());
-			if (!areEqual(o1Place,p)) {
-				LOGGER.debug("Not equal: places {} != {}",p, o1Place);
-				return false;
-			}
-		}
+		if (!checkPlaces(o1, o2))
+			return false;
+		return checkTransitions(o1, o2);		
+	}
+
+	private static boolean checkTransitions(StochasticNet o1, StochasticNet o2) {
 		Map <String,Transition> o1TransitionMap = o1.getTransitions().stream().collect(
 										Collectors.toMap(Transition::getLabel, Function.identity()));
 		for (Transition t: o2.getTransitions()) {
@@ -63,7 +61,20 @@ public class StochasticPetriNetUtils {
 				if (!areEqual(o1Transition,t))
 					return false;
 			}
-		}		
+		}
+		return true;
+	}
+
+	private static boolean checkPlaces(StochasticNet o1, StochasticNet o2) {
+		Map<String,Place> o1PlaceMap = o1.getPlaces().stream().collect(
+										Collectors.toMap(Place::getLabel, Function.identity()));
+		for (Place p: o2.getPlaces()) {
+			Place o1Place = o1PlaceMap.get(p.getLabel());
+			if (!areEqual(o1Place,p)) {
+				LOGGER.debug("Not equal: places {} != {}",p, o1Place);
+				return false;
+			}
+		}
 		return true;
 	}
 
@@ -94,7 +105,13 @@ public class StochasticPetriNetUtils {
 
 	}
 
-	
+
+	/**
+	 * Precondition no duplicate labels - use areEqualWithDupes
+	 * @param edges1
+	 * @param edges2
+	 * @return
+	 */
 	public static boolean areEqual(Collection<PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode>> edges1, 
 								   Collection<PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode>> edges2) {
 		if (edges1.size() != edges2.size())
@@ -104,11 +121,25 @@ public class StochasticPetriNetUtils {
 										         p -> p.getTarget().getLabel()) );
 		for (PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode> edge: edges2) {
 			String target = edgeMap1.get(edge.getSource().getLabel());
-			if (! target.equals( edge.getTarget().getLabel() ) )
+			if (target == null || ! target.equals( edge.getTarget().getLabel() ) )
 				return false;
 		}
 		return true;
 	}
+	
+	public static boolean areEqualWithDupes(StochasticNet o1, StochasticNet o2, NodeMapper nodeMapper1, NodeMapper nodeMapper2) {
+		if (o1 == null && o2 == null)
+			return true;
+		if (o1 == null || o2 == null)
+			return false;
+		// Yes, creating new nets is inefficient. But it's very awkward to constantly work around the label mapping as well
+		StochasticNet new1 = StochasticNetMappingCloner.cloneFromStochasticNet(o1, nodeMapper1);
+		StochasticNet new2 = StochasticNetMappingCloner.cloneFromStochasticNet(o2, nodeMapper2);
+		return areEqual(new1, new2);
+	}
+	
+
+
 
 	public static Collection<Transition> findAllSuccessors(Transition transition) {
 	
