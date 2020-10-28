@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.processmining.acceptingpetrinet.models.AcceptingPetriNet;
 import org.processmining.acceptingpetrinet.models.impl.AcceptingPetriNetImpl;
+import org.processmining.models.graphbased.NodeID;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetNode;
 import org.processmining.models.graphbased.directed.petrinet.StochasticNet;
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
@@ -45,9 +46,8 @@ import org.processmining.models.semantics.petrinet.Marking;
  * TRANSITION        	:: SIMPLE_TRANSITION || WEIGHTED_TRANSITION
  * SIMPLE_TRANSITION 	:: TRAN_START TRAN_LABEL TRAN_END
  * WEIGHTED_TRANSITION  :: WEIGHTED_TRAN_VALUE | WEIGHTED_TRAN_DEFAULT
- * WEIGHTED_TRAN_VALUE  :: '{' LABEL WEIGHT '}'
- * WEIGHTED_TRAN_DEFAULT:: '{' LABEL '}'
- * WEIGHT			 	:: [0-9].[0-9]*
+ * WEIGHTED_TRAN_VALUE  :: '{' TRAN_LABEL WEIGHT '}'
+ * WEIGHTED_TRAN_DEFAULT:: '{' TRAN_LABEL '}'
  * TRAN_LABEL			:: LABEL || ID_LABEL
  * ID_LABEL				:: LABEL ID_PREFIX ID
  * PLACE             	:: LABEL
@@ -55,8 +55,10 @@ import org.processmining.models.semantics.petrinet.Marking;
  * SIMPLE_TRAN_START	:: '['
  * SIMPLE_TRAN_END		:: ']' 
  * ID_PREFIX			:: '__'
+ * WEIGHT			 	:: NUM_STR
+ * ID             		:: NUM_STR
+ * NUM_STR				:: numeric string
  * LABEL             	:: alphanumeric string
- * ID             		:: numeric string
  * </pre>
  *
  * Doesn't work for extended codepoints (eg UTF-16).
@@ -69,19 +71,23 @@ public class PetriNetFragmentParser{
 	private static String ID_LEXEME = "__";
 	
 	private static enum TokenInfo{
-		WEIGHTED_DEFAULT_TRANSITION("\\{[a-zA-Z][a-zA-Z0-9]*\\}"),
-		WEIGHTED_VALUE_TRANSITION("\\{[a-zA-Z][a-zA-Z0-9]*\\s[0-9]*\\.[0-9]*\\}"),
+//		WEIGHTED_DEFAULT_TRANSITION("\\{[a-zA-Z][a-zA-Z0-9]*\\}"),
+//		WEIGHTED_VALUE_TRANSITION("\\{[a-zA-Z][a-zA-Z0-9]*\\s[0-9]*\\.[0-9]*\\}"),
 		SIMPLE_TRAN_START("\\["),
 		SIMPLE_TRAN_END("\\]"),
+		WEIGHTED_TRAN_START("\\{"),
+		WEIGHTED_TRAN_END("\\}"),
 		ID_PREFIX(ID_LEXEME),
 		EDGE("->"),
 		LABEL("[a-zA-Z][a-zA-Z0-9]*"),
+		WEIGHT("[0-9]+\\.[0-9]+"),
 		ID("[0-9]+"),
 		TERMINAL("");
 
 		public static final TokenInfo[] LEX_VALUES = 
-				{WEIGHTED_DEFAULT_TRANSITION,WEIGHTED_VALUE_TRANSITION,
-						SIMPLE_TRAN_START,SIMPLE_TRAN_END,ID_PREFIX,EDGE,LABEL,ID}; 
+				{SIMPLE_TRAN_START,SIMPLE_TRAN_END,
+				 WEIGHTED_TRAN_START,WEIGHTED_TRAN_END,
+						ID_PREFIX,EDGE,LABEL,WEIGHT,ID}; 
 		
 		private Pattern pattern;
 		
@@ -290,42 +296,75 @@ public class PetriNetFragmentParser{
 		if (lookahead.tokenInfo.equals(TokenInfo.SIMPLE_TRAN_START)) {
 			transition = simpleTransition();
 		}
-		if (lookahead.tokenInfo.equals(TokenInfo.WEIGHTED_VALUE_TRANSITION)) {
+		if (lookahead.tokenInfo.equals(TokenInfo.WEIGHTED_TRAN_START)) {
 			transition = weightedValueTransition();
 		}
-		if (lookahead.tokenInfo.equals(TokenInfo.WEIGHTED_DEFAULT_TRANSITION)) {
-			transition = weightedDefaultTransition();
-		}		
 		nextToken();
 		return transition;
 	}
 
-	private Transition weightedDefaultTransition() {
-		Transition transition;
-		// This is cheating / a hack 
-		// We are tokenizing inside the parser to keep the structure LL(1)
-		String label = lookahead.sequence.substring(1,lookahead.sequence.length()-1);
-		transition = checkExistingTransition(label);
+	private Transition weightedValueTransition() {
+		Transition transition = null;
+		nextToken();
+		String label = "";
+		String id = "";
+		double weight = 1.0;
+		if (lookahead.tokenInfo.equals(TokenInfo.LABEL)) {
+			label = tranLabel();
+			nextToken();
+		}else {
+			throw new RuntimeException("Expected label, but found " + lookahead );
+		}
+		if (lookahead.tokenInfo.equals(TokenInfo.ID_PREFIX)){
+			nextToken();
+			id = id();
+			nextToken();
+		}
+		if (lookahead.tokenInfo.equals(TokenInfo.WEIGHT)) {
+			weight = weight();
+			nextToken();			
+		} 
+		if (!lookahead.tokenInfo.equals(TokenInfo.WEIGHTED_TRAN_END)) {
+			tokenError(TokenInfo.WEIGHTED_TRAN_END,TokenInfo.ID_PREFIX);
+		}
+		String genId = genId(label, id);
+		if (id.isEmpty()) {
+			transition = checkExistingTransition(label);
+		}else {
+			transition = checkExistingTransitionById(genId);
+		}
 		if (transition == null) {
-			transition = net.addImmediateTransition(label, 1.0 );
+			transition = net.addImmediateTransition(label, weight);
 			nodeLookup.put(label,transition);
+			nodeMapper.put(transition.getId(), genId);
 		}
 		return transition;
 	}
 
-	private Transition weightedValueTransition() {
-		Transition transition;
-		// This is cheating / a hack 
-		// We are tokenizing inside the parser to keep the structure LL(1)
-		String text = lookahead.sequence.substring(1,lookahead.sequence.length()-1);
-		String[] values = text.split(" ");
-		String label = values[0];
-		transition = checkExistingTransition(label);
-		if (transition == null) {
-			transition = net.addImmediateTransition(values[0], Double.valueOf( values[1] ));
-			nodeLookup.put(label,transition);
+	private Transition checkExistingTransitionById(String id) {
+		NodeID nodeId = nodeMapper.getNode(id);
+		if (nodeId == null)
+			return null;
+		Transition transition = null;
+		net.getNodes();
+		for (PetrinetNode node: net.getNodes()) {
+			if (nodeId.equals(node.getId())){
+				transition = (Transition)node;
+				break;
+			}
 		}
 		return transition;
+	}
+
+	private String genId(String label, String id) {
+		if (!id.isEmpty()) {
+			return label + ID_LEXEME + id;
+		}
+		return label;
+	}
+
+	private double weight() {
+		return Double.valueOf(lookahead.sequence);
 	}
 
 	private Transition simpleTransition() {
@@ -355,11 +394,8 @@ public class PetriNetFragmentParser{
 		if (transition == null) {
 			transition = net.addTransition(label);
 			nodeLookup.put(label,transition);
-			if (!id.isEmpty()) {
-				nodeMapper.put(transition.getId(), label + ID_LEXEME + id);
-			}else {
-				nodeMapper.put(transition.getId(), label);
-			}
+			String genId = genId(label, id);
+			nodeMapper.put(transition.getId(), genId);
 		}
 		return transition;
 	}
@@ -369,7 +405,6 @@ public class PetriNetFragmentParser{
 	}
 
 	private void tokenError(TokenInfo ... tokens) {
-		
 		throw new RuntimeException("Expected one of " + Arrays.toString(tokens) 
 								+ ", but found " + lookahead );
 	}
