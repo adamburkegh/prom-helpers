@@ -27,7 +27,7 @@ parser.addToNet(net, "I -> [a] -> F");
 parser.addToNet(net, "I -> [b] -> F");
 ```
 
-See detailed doc comment in [PetriNetFragmentParser](src/main/java/qut/pm/prom/helpers/PetriNetFragmentParser.java)
+See detailed doc comment in [PetriNetFragmentParser](src/main/java/qut/pm/prom/helpers/PetriNetFragmentParser.java).
 
 
 # Building
