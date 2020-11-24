@@ -9,7 +9,8 @@ Run ProM plugins headless, by using a console-based `PluginContext`. Available i
 
 ```java
 PluginContext uipc = 
-    new HeadlessDefinitelyNotUIPluginContext(new ConsoleUIPluginContext(), "spn_dot_converter");	
+    new HeadlessDefinitelyNotUIPluginContext(
+               new ConsoleUIPluginContext(), "spn_dot_converter");	
 ```
 
 
