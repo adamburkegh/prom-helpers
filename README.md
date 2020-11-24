@@ -10,21 +10,21 @@ Run ProM plugins headless, by using a console-based `PluginContext`. Available i
 ```java
 		PluginContext uipc = 
 				new HeadlessDefinitelyNotUIPluginContext(new ConsoleUIPluginContext(), "spn_dot_converter");	
-'''
+```
 
 
 ## Petri net fragment parser
 
 Simplify unit tests by specifying unit tests in a simple ASCII visual syntax.
 
-'''java
+```java
 		// This is equivalent to a single net
 		//     [a] 
 		// I -/   \-> F
 		//    \[b]/
 		parser.addToNet(net, "I -> [a] -> F");
 		parser.addToNet(net, "I -> [b] -> F");
-'''
+```
 
 See detailed doc comment in [PetriNetFragmentParser](src/main/java/qut/pm/prom/helpers/PetriNetFragmentParser.java)
 
