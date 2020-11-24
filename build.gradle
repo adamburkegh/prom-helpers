@@ -32,6 +32,7 @@ dependencies {
     api 'prom:StochasticPetriNets:latest'
     api 'org.apache.logging.log4j:log4j-api:2.8.2' 
     api 'org.apache.logging.log4j:log4j-core:2.8.2'
+    api 'org.simpleframework:simple-xml:2.7.1'
     testImplementation 'junit:junit:4.11'
 }
 
@@ -40,7 +41,7 @@ java{
 }
 
 group = 'qut.pm'
-version = '0.8.1'
+version = '0.8.2-SNAPSHOT'
 description = 'prom-helpers'
 sourceCompatibility = '1.8'
 
