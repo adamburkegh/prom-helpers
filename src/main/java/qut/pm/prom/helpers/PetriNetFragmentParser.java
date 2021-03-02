@@ -71,8 +71,6 @@ public class PetriNetFragmentParser{
 	private static String ID_LEXEME = "__";
 	
 	private static enum TokenInfo{
-//		WEIGHTED_DEFAULT_TRANSITION("\\{[a-zA-Z][a-zA-Z0-9]*\\}"),
-//		WEIGHTED_VALUE_TRANSITION("\\{[a-zA-Z][a-zA-Z0-9]*\\s[0-9]*\\.[0-9]*\\}"),
 		SIMPLE_TRAN_START("\\["),
 		SIMPLE_TRAN_END("\\]"),
 		WEIGHTED_TRAN_START("\\{"),
