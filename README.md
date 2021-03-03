@@ -29,6 +29,14 @@ parser.addToNet(net, "I -> [b] -> F");
 
 See detailed doc comment in [PetriNetFragmentParser](src/main/java/qut/pm/prom/helpers/PetriNetFragmentParser.java).
 
+A command line interface which will convert Petri net fragments (.frag) to PNML is exposed in `PetriNetConverter.main()`.
+
+```
+usage: pnc [-i <arg>] [-o <arg>] [-v]
+ -i,--input-format <arg>    Input format (PNML,FRAG)
+ -o,--output-format <arg>   Output format (PNML,DOT)
+ -v,--verbose               Verbose output.
+```
 
 # Building
 

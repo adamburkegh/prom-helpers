@@ -1,5 +1,6 @@
 package qut.pm.prom.helpers;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -7,15 +8,23 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.processmining.models.connections.GraphLayoutConnection;
 import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetEdge;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetNode;
 import org.processmining.models.graphbased.directed.petrinet.StochasticNet;
 import org.processmining.models.graphbased.directed.petrinet.StochasticNet.DistributionType;
+import org.processmining.models.graphbased.directed.petrinet.StochasticNet.ExecutionPolicy;
+import org.processmining.models.graphbased.directed.petrinet.StochasticNet.TimeUnit;
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
 import org.processmining.models.graphbased.directed.petrinet.elements.TimedTransition;
 import org.processmining.models.graphbased.directed.petrinet.elements.Transition;
+import org.processmining.plugins.pnml.exporting.StochasticNetToPNMLConverter;
+import org.processmining.plugins.pnml.simple.PNMLRoot;
 import org.processmining.plugins.stochasticpetrinet.StochasticNetUtils;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
+
 
 /**
  * Utility methods for exporting petri nets in visualization formats. 
@@ -102,21 +111,27 @@ public class PetrinetExportUtils {
         return resultString;
     }
 
-    /**
-     * Small files only - reads in one hit
-     * 
-     * @param filePath
-     * @return
-     * @throws IOException
-     */
-    public static String petriNetFragmentToDOT(String filePath) throws IOException 
-    {
-		byte[] encoded = Files.readAllBytes( Paths.get( filePath ));
+	public static void storePNMLModel(File modelFile, StochasticNet net)
+			throws Exception
+	{
+		PNMLRoot root = new StochasticNetToPNMLConverter().convertNet(net,
+				StochasticPetriNetUtils.guessInitialMarking(net),
+				new GraphLayoutConnection(net));
+		net.setExecutionPolicy(ExecutionPolicy.RACE_ENABLING_MEMORY);
+		net.setTimeUnit(TimeUnit.HOURS);
+		Serializer serializer = new Persister();
+		serializer.write(root, modelFile);
+	}
+
+
+	public static StochasticNet readPNetFragmentToStochasticNet(File inFile) throws IOException {
+		byte[] encoded = Files.readAllBytes( Paths.get( inFile.toURI() ));
 		String text = new String(encoded,StandardCharsets.UTF_8); 
 		PetriNetFragmentParser parser = new PetriNetFragmentParser();
 		String[] lines = text.split(LINE_SEP);
-		StochasticNet net = parser.createNetArgs(filePath, lines);
-		return convertPetrinetToDOT(net);
-    }
+		StochasticNet net = parser.createNetArgs(inFile.getName() , lines);
+		return net;
+	}
+
     
 }
