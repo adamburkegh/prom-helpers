@@ -41,7 +41,7 @@ java{
 }
 
 group = 'qut.pm'
-version = '0.8.3'
+version = '0.8.4-SNAPSHOT'
 description = 'prom-helpers'
 sourceCompatibility = '1.8'
 
