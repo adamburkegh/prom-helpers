@@ -61,20 +61,24 @@ public class PetriNetConverter {
                 .desc("Output format (PNML,DOT)")
                 .build();
 		options.addOption(outFormat);
-		CommandLine cmd = parser.parse(options,args);
-		String[] inFiles = cmd.getArgs();
-		verbose = cmd.hasOption("v");
-		String inFormatValue = cmd.getOptionValue("i",PNML);
-		String outFormatValue = cmd.getOptionValue("o",DOT);
-		if (!INPUT_FORMATS.contains(inFormatValue)){
-			exitWithHelp(options, "Invalid input format:" + inFormatValue);
+		try {
+			CommandLine cmd = parser.parse(options,args);
+			String[] inFiles = cmd.getArgs();
+			verbose = cmd.hasOption("v");
+			String inFormatValue = cmd.getOptionValue("i",PNML);
+			String outFormatValue = cmd.getOptionValue("o",DOT);
+			if (!INPUT_FORMATS.contains(inFormatValue)){
+				exitWithHelp(options, "Invalid input format:" + inFormatValue);
+			}
+			if (!OUTPUT_FORMATS.contains(outFormatValue)){
+				exitWithHelp(options, "Invalid output format:" + outFormatValue);
+			}
+			for (String fileIn: inFiles) {
+				processFile(fileIn, inFormatValue, outFormatValue);	
+			}
+		}catch (Exception ex){
+			exitWithHelp(options, ex.getMessage());
 		}
-		if (!OUTPUT_FORMATS.contains(outFormatValue)){
-			exitWithHelp(options, "Invalid output format:" + outFormatValue);
-		}
-		for (String fileIn: inFiles) {
-			processFile(fileIn, inFormatValue, outFormatValue);	
-		}		
 	}
 
 	private static void exitWithHelp(final Options options, String msg) {
