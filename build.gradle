@@ -41,13 +41,26 @@ java{
 }
 
 group = 'qut.pm'
-version = '0.8.4-SNAPSHOT'
+version = '0.8.4'
 description = 'prom-helpers'
 sourceCompatibility = '1.8'
 
 publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/adamburkegh/prom-helpers")
+            credentials {
+                username = "adamburkegh"
+                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
     publications {
         maven(MavenPublication) {
+            from(components.java)
+        }
+        gpr(MavenPublication) {
             from(components.java)
         }
     }
