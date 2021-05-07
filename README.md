@@ -42,6 +42,8 @@ usage: pnc [-i <arg>] [-o <arg>] [-v]
 
 `./gradlew test`
 
-prom-helpers is built with gradle and compatible with ivy, which is heavily used for ProM projects.
+`prom-helpers` is built with gradle and compatible with ivy, which is heavily used for ProM projects.
  
+# Using As Library
 
+The ProM package system places some limitations on publishing standalone maven packages (specifically the lack of a maven-compatible versioned jar), so there is currently no standalone package available. `prom-helpers` can be built and installed with gradle locally.
