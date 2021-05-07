@@ -46,4 +46,4 @@ usage: pnc [-i <arg>] [-o <arg>] [-v]
  
 # Using As Library
 
-The ProM package system places some limitations on publishing standalone maven packages (specifically the lack of a maven-compatible versioned jar), so there is currently no standalone package available. `prom-helpers` can be built and installed with gradle locally.
+The ProM package system places some limitations on publishing standalone maven packages (specifically the lack of a maven-compatible versioned jar) and this library is not fully maven-compatible as a result. Ivy repository configuration for gradle can be found in the `build.gradle` file. Using ivy in the consuming project should also work.
