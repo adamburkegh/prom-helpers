@@ -19,6 +19,8 @@ import org.processmining.models.graphbased.directed.petrinet.elements.Transition
 import org.processmining.models.graphbased.directed.petrinet.impl.StochasticNetImpl;
 import org.processmining.models.semantics.petrinet.Marking;
 
+import qut.pm.spm.AcceptingStochasticNet;
+
 /**
  * Allows the creation of Petri nets with short one line ascii sketches, for example
  * <code>initialPlace -> [transition1] -> mp -> [transition2] -> finalPlace</code> 
@@ -167,6 +169,11 @@ public class PetriNetFragmentParser{
 		return markInitialFinalPlaces(net);
 	}
 
+	public AcceptingStochasticNet createAcceptingStochasticNet(String label, String netText) {
+		AcceptingPetriNet apn = createAcceptingNet(label,netText);
+		return new AcceptingStochasticNet(label, (StochasticNet)apn.getNet(), 
+									       apn.getInitialMarking(), apn.getFinalMarkings() );
+	}
 	
 	public AcceptingPetriNet markInitialFinalPlaces(StochasticNet net) {
 		Set<Place> initialCandidates = new TreeSet<>();
