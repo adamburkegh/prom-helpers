@@ -40,7 +40,7 @@ usage: pnc [-i <arg>] [-o <arg>] [-v]
 
 ## XES parser for delimited text files
 
-Convenience parser for text delimited file. For testing especially, these are terser and quicker to understand than the verbosity and genericity of full XES files. Each argument is a trace, each delimited entry is an event.
+Convenience parser for text delimited files. For testing especially, these are terser and quicker to understand than the verbosity and genericity of full XES files. Each argument is a trace and each delimited entry is an event. See [DelimitedTraceToXESConverter](src/main/java/qut/pm/xes/helpers/DelimitedTraceToXESConverter.java).
 
 ```java
 DelimitedTraceToXESConverter converter = new DelimitedTraceToXESConverter(); 
