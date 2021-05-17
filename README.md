@@ -38,6 +38,19 @@ usage: pnc [-i <arg>] [-o <arg>] [-v]
  -v,--verbose               Verbose output.
 ```
 
+## XES parser for delimited text files
+
+Convenience parser for text delimited file. For testing especially, these are terser and quicker to understand than the verbosity and genericity of full XES files. Each argument is a trace, each delimited entry is an event.
+
+```java
+DelimitedTraceToXESConverter converter = new DelimitedTraceToXESConverter(); 
+XLog log = converter.convertTextArgs("a b d",
+                                     "a b d",
+                                     "a b d",
+                                     "a c d");
+```
+
+
 # Building
 
 `./gradlew test`
