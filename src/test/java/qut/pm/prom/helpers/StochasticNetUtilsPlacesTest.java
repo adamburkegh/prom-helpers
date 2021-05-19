@@ -73,8 +73,10 @@ public class StochasticNetUtilsPlacesTest {
 		Place p1n2 = net2.addPlace("p1");
 		Place p2n2 = net2.addPlace("p2");
 		net2.addArc(p1n2, ta);		
+		assertTrue( StochasticPetriNetUtils.areEqual(p1,p1n2) ); 
 		assertFalse( StochasticPetriNetUtils.areEqual(p1,p2) );
-		assertTrue( StochasticPetriNetUtils.areEqual(p1,p1n2) );
+		assertFalse( StochasticPetriNetUtils.areEqual(p1n2,p2n2) );
+		assertFalse( StochasticPetriNetUtils.areEqual(p1n2,p2n2) );
 		assertTrue( StochasticPetriNetUtils.areEqual(p2,p2n2) );
 	}
 

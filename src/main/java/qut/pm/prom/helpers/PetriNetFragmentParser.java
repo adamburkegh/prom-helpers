@@ -2,6 +2,7 @@ package qut.pm.prom.helpers;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -10,16 +11,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.processmining.acceptingpetrinet.models.AcceptingPetriNet;
-import org.processmining.acceptingpetrinet.models.impl.AcceptingPetriNetImpl;
 import org.processmining.models.graphbased.NodeID;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetNode;
 import org.processmining.models.graphbased.directed.petrinet.StochasticNet;
+import org.processmining.models.graphbased.directed.petrinet.elements.Arc;
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
 import org.processmining.models.graphbased.directed.petrinet.elements.Transition;
 import org.processmining.models.graphbased.directed.petrinet.impl.StochasticNetImpl;
 import org.processmining.models.semantics.petrinet.Marking;
 
 import qut.pm.spm.AcceptingStochasticNet;
+import qut.pm.spm.AcceptingStochasticNetImpl;
 
 /**
  * Allows the creation of Petri nets with short one line ascii sketches, for example
@@ -30,11 +32,12 @@ import qut.pm.spm.AcceptingStochasticNet;
  * 
  * Weighted transitions without weights, as in <code>{b}</code>, are defaulted to weight 1.0.
  * 
- * Current limitations: no support for SPNs beyond weighted transitions. No support for separate
- * nodes with duplicate labels.
+ * Nodes with duplicate labels can be specified using a [tranLabel__id] syntax. 
  * 
- * Methods for creating {@code AcceptingPetriNets} are also provided. These use naming 
- * conventions to identify initial and final markings per 
+ * Current limitations: no support for SPNs beyond weighted transitions. No weighted arcs.
+ * 
+ * Methods for creating an {@code AcceptingPetriNet} and {@code AcceptingStochasticNet} are also 
+ * provided. These use naming conventions to identify initial and final markings per 
  * {@link #createAcceptingNet(String, String)}.
  * 
  * Grammar
@@ -162,20 +165,15 @@ public class PetriNetFragmentParser{
 	 * @param netText
 	 * @return
 	 */
-	public AcceptingPetriNet createAcceptingNet(String label, String netText) {
+	public AcceptingStochasticNet createAcceptingNet(String label, String netText) {
 		StochasticNet net = new StochasticNetImpl(label);
 		nodeLookup = new HashMap<>();
 		addToNet(net,netText);
 		return markInitialFinalPlaces(net);
 	}
 
-	public AcceptingStochasticNet createAcceptingStochasticNet(String label, String netText) {
-		AcceptingPetriNet apn = createAcceptingNet(label,netText);
-		return new AcceptingStochasticNet(label, (StochasticNet)apn.getNet(), 
-									       apn.getInitialMarking(), apn.getFinalMarkings() );
-	}
-	
-	public AcceptingPetriNet markInitialFinalPlaces(StochasticNet net) {
+
+	public AcceptingStochasticNet markInitialFinalPlaces(StochasticNet net) {
 		Set<Place> initialCandidates = new TreeSet<>();
 		Set<Place> finalCandidates = new TreeSet<>();
 		for (Place place: net.getPlaces()) {
@@ -193,7 +191,9 @@ public class PetriNetFragmentParser{
 		}
 		Marking initialMarking = markPlaceFromCandidates(initialCandidates, INITIAL_PLACE_LABELS);
 		Marking finalMarking = markPlaceFromCandidates(finalCandidates, FINAL_PLACE_LABELS);
-		return new AcceptingPetriNetImpl(net,initialMarking,finalMarking);
+		Set<Marking> finalMarkings = new HashSet<>();
+		finalMarkings.add(finalMarking);
+		return new AcceptingStochasticNetImpl(net,initialMarking,finalMarkings);
 	}
 
 	private Marking markPlaceFromCandidates(Set<Place> initialCandidates, Set<String> identifyingLabels) {
@@ -232,7 +232,7 @@ public class PetriNetFragmentParser{
 		addToNet(net,netText);
 		anet = markInitialFinalPlaces(net);
 	}
-
+	
 	public StochasticNet createNetArgs(String label, String ... specs) {
 		if (specs.length == 0) {
 			return new StochasticNetImpl(label);
@@ -279,8 +279,20 @@ public class PetriNetFragmentParser{
 		Transition transition = transition();
 		edge();
 		Place p2 = placeLedSubnet();
-		net.addArc(p1, transition);
-		net.addArc(transition, p2);			
+		readdArc(p1, transition);
+		readdArc(transition, p2);			
+	}
+
+	private void readdArc(Transition transition, Place p2) {
+		Arc arc = net.getArc(transition,p2);
+		if (arc == null)
+			net.addArc(transition, p2);
+	}
+
+	private void readdArc(Place p1, Transition transition) {
+		Arc arc = net.getArc(p1,transition);
+		if (arc == null)
+			net.addArc(p1, transition);
 	}
 	
 	private Place placeLedSubnet() {
@@ -290,8 +302,8 @@ public class PetriNetFragmentParser{
 			Transition transition = transition();
 			edge();
 			Place tail = placeLedSubnet();
-			net.addArc(head, transition);
-			net.addArc(transition, tail);
+			readdArc(head, transition);
+			readdArc(transition, tail);
 		}
 		return head;
 	}

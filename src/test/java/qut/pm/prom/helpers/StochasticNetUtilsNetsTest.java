@@ -52,7 +52,27 @@ public class StochasticNetUtilsNetsTest {
 		areEqual(net1,net2);
 		areEqual(net2,net1);
 	}
-		
+
+	@Test
+	public void compareOneTransitionMultipleAddEdges() {
+		// I -> [a] -> F
+		StochasticNet net1 = new StochasticNetImpl("ot1");
+		Transition ta = net1.addTransition("a");
+		Place initialPlace = net1.addPlace("initial");
+		Place finalPlace = net1.addPlace("final");
+		net1.addArc(initialPlace, ta);
+		net1.addArc(ta,finalPlace);
+		net1.addArc(ta,finalPlace);
+		StochasticNet net2 = new StochasticNetImpl("ot2");
+		ta = net2.addTransition("a");
+		initialPlace = net2.addPlace("initial");
+		finalPlace = net2.addPlace("final");
+		net2.addArc(initialPlace, ta);
+		net2.addArc(ta,finalPlace);
+		areNotEqual(net1,net2);
+		areNotEqual(net2,net1);
+	}
+	
 
 	@Test
 	public void compareOneTimedTransition() {
@@ -65,6 +85,7 @@ public class StochasticNetUtilsNetsTest {
 		areNotEqual(net1,net3);
 		areNotEqual(net2,net3);
 	}
+	
 	
 	
 }

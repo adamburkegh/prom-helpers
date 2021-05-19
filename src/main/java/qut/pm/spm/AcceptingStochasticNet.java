@@ -1,45 +1,45 @@
 package qut.pm.spm;
 
-import java.util.HashSet;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Set;
 
+import org.processmining.acceptingpetrinet.models.AcceptingPetriNet;
+import org.processmining.framework.plugin.PluginContext;
+import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.StochasticNet;
 import org.processmining.models.semantics.petrinet.Marking;
 
-public class AcceptingStochasticNet {
+public interface AcceptingStochasticNet extends AcceptingPetriNet{
 
-	private String id;
-	private StochasticNet net;
-	private Marking initialMarking;
-	private Set<Marking> finalMarkings;
-	
-	public AcceptingStochasticNet(String id, StochasticNet net, Marking initialMarking) {
-		this(id,net,initialMarking,new HashSet<>());
-	}
-	
-	public AcceptingStochasticNet(String id, StochasticNet net, Marking initialMarking,
-			Set<Marking> finalMarkings) {
-		super();
-		this.id = id;
-		this.net = net;
-		this.initialMarking = initialMarking;
-		this.finalMarkings = finalMarkings;
-	}
-	
-	public String getId() {
-		return id;
-	}
-	
-	public StochasticNet getNet() {
-		return net;
+	String getId();
+
+	StochasticNet getNet();
+
+	Marking getInitialMarking();
+
+	Set<Marking> getFinalMarkings();
+
+	@Deprecated
+	default void init(Petrinet net) {
+		throw new UnsupportedOperationException("Deprecated method in superinterface");
 	}
 
-	public Marking getInitialMarking() {
-		return initialMarking;
+	@Deprecated
+	default void init(PluginContext context, Petrinet net) {
+		throw new UnsupportedOperationException("Deprecated method in superinterface");
 	}
 
-	public Set<Marking> getFinalMarkings() {
-		return finalMarkings;
+	void setInitialMarking(Marking initialMarking);
+
+	void setFinalMarkings(Set<Marking> finalMarkings);
+
+	@Deprecated
+	default void importFromStream(PluginContext context, InputStream input) throws Exception{
+		throw new UnsupportedOperationException("Deprecated method in superinterface");
 	}
-	
+
+	void exportToFile(PluginContext context, File file) throws IOException;
+
 }

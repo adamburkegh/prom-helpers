@@ -44,6 +44,22 @@ public class PetriNetFragmentParserTest {
 	}
 
 	@Test
+	public void duplicateArcs() {
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("I");
+		Transition ta = expected.addTransition("a");
+		Place finalPlace = expected.addPlace("F");
+		expected.addArc(initialPlace, ta);
+		expected.addArc(ta,finalPlace);
+		PetriNetFragmentParser parser = new PetriNetFragmentParser();
+		StochasticNet net = new StochasticNetImpl("pf");
+		parser.addToNet(net, "I -> [a] -> F");
+		parser.addToNet(net, "I -> [a] -> F");
+		assertTrue( StochasticPetriNetUtils.areEqual(expected, net) );		
+	}
+
+	
+	@Test
 	public void tranWithId() {
 		StochasticNet expected = new StochasticNetImpl("expected");
 		Place initialPlace = expected.addPlace("I");

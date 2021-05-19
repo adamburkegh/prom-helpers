@@ -206,5 +206,15 @@ public class DelimitedTraceToXESConverterTest {
 		assertEquals(1, xLogInfo.getNumberOfTraces());
 		assertEquals(1, xLogInfo.getNumberOfEvents());
 	}
+
+	@Test
+	public void roundTrip() {
+		String traceText = "a b a a" + "\n" 
+				 + "c b a" + "\n"
+				 + "a b a a" + "\n";		
+		XLog log = converter.convertText(traceText);
+		String output = converter.convertXLogToString(log, new XEventNameClassifier());
+		assertEquals(traceText,output);
+	}
 	
 }

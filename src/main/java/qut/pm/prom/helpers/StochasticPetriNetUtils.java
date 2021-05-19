@@ -15,6 +15,7 @@ import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetEdge;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetNode;
 import org.processmining.models.graphbased.directed.petrinet.StochasticNet;
+import org.processmining.models.graphbased.directed.petrinet.elements.Arc;
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
 import org.processmining.models.graphbased.directed.petrinet.elements.TimedTransition;
 import org.processmining.models.graphbased.directed.petrinet.elements.Transition;
@@ -100,34 +101,91 @@ public class StochasticPetriNetUtils {
 			return false;
 		if (! p1.getLabel().equals(p2.getLabel()))
 			return false;
-		return areEqual( p1.getGraph().getInEdges(p1),
+		return areEqualForSharedNode( p1.getGraph().getInEdges(p1),
 						 p2.getGraph().getInEdges(p2));
 
 	}
 
+	
+	private static class EdgeKey{
+		private String sourceLabel;
+		private String targetLabel;
+		
+		
+		public EdgeKey(PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode> edge) {
+			super();
+			this.sourceLabel = edge.getSource().getLabel();
+			this.targetLabel = edge.getTarget().getLabel();
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((sourceLabel == null) ? 0 : sourceLabel.hashCode());
+			result = prime * result + ((targetLabel == null) ? 0 : targetLabel.hashCode());
+			return result;
+		}
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			EdgeKey other = (EdgeKey) obj;
+			if (sourceLabel == null) {
+				if (other.sourceLabel != null)
+					return false;
+			} else if (!sourceLabel.equals(other.sourceLabel))
+				return false;
+			if (targetLabel == null) {
+				if (other.targetLabel != null)
+					return false;
+			} else if (!targetLabel.equals(other.targetLabel))
+				return false;
+			return true;
+		}
+		
+		
+	}
 
 	/**
-	 * Precondition no duplicate labels - use areEqualWithDupes
+	 * Tests whether two sets of edges are equivalent. Each set of edges must be coming out of a 
+	 * single node. Intended for use in testing the equivalence of two nodes in different nets.
+	 * 
+	 * Precondition: no duplicate labels - use areEqualWithDupes
 	 * @param edges1
 	 * @param edges2
 	 * @return
 	 */
-	public static boolean areEqual(Collection<PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode>> edges1, 
+	public static boolean areEqualForSharedNode(Collection<PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode>> edges1, 
 								   Collection<PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode>> edges2) {
 		if (edges1.size() != edges2.size())
 			return false;
-		Map<String,String> edgeMap1 = edges1.stream().collect(
-								Collectors.toMap(p -> p.getSource().getLabel(), 
-										         p -> p.getTarget().getLabel()) );
-		for (PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode> edge: edges2) {
-			String target = edgeMap1.get(edge.getSource().getLabel());
-			if (target == null || ! target.equals( edge.getTarget().getLabel() ) )
+		
+		Map<EdgeKey,  PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode>> edgeKeyMap1 = edges1.stream().collect(
+				Collectors.toMap(e -> new EdgeKey(e), 
+						         e -> e));
+		for (PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode> edge2: edges2) {
+			EdgeKey key = new EdgeKey(edge2);
+			PetrinetEdge<? extends PetrinetNode, ? extends PetrinetNode> edge1 = edgeKeyMap1.get(key);
+			if (edge1 == null)
 				return false;
+			if (edge1 instanceof Arc && edge2 instanceof Arc) {
+				Arc arc1 = (Arc)edge1; Arc arc2 = (Arc)edge2;  
+				if (arc1.getWeight() != arc2.getWeight()) {
+					return false;
+				}
+			}
 		}
 		return true;
 	}
 	
-	public static boolean areEqualWithDupes(StochasticNet o1, StochasticNet o2, NodeMapper nodeMapper1, NodeMapper nodeMapper2) {
+	public static boolean areEqualWithDupes(StochasticNet o1, StochasticNet o2, 
+										    NodeMapper nodeMapper1, NodeMapper nodeMapper2) 
+	{
 		if (o1 == null && o2 == null)
 			return true;
 		if (o1 == null || o2 == null)

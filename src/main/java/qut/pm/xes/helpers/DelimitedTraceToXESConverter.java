@@ -1,10 +1,14 @@
 package qut.pm.xes.helpers;
 
+import static qut.pm.xes.helpers.XESLogUtils.XES_CONCEPT_NAME;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.deckfour.xes.classification.XEventClassifier;
+import org.deckfour.xes.classification.XEventNameClassifier;
 import org.deckfour.xes.model.XAttribute;
 import org.deckfour.xes.model.XAttributeMap;
 import org.deckfour.xes.model.XEvent;
@@ -26,10 +30,9 @@ import org.deckfour.xes.model.impl.XTraceImpl;
  */
 public class DelimitedTraceToXESConverter {
 
+	private static final XEventNameClassifier NAME_CLASSIFIER = new XEventNameClassifier();
 	public static final String DEFAULT_EVENT_DELIMITER = " ";
 	public static final String DEFAULT_TRACE_DELIMITER = "\n";
-	
-	private static final String XES_CONCEPT_NAME = "concept:name";
 	
 	public DelimitedTraceToXESConverter() {
 	}
@@ -134,6 +137,39 @@ public class DelimitedTraceToXESConverter {
 		return convertText( new String(encoded,StandardCharsets.UTF_8) );
 	}
 	
-	
+	/**
+	 * Export an XLog in delimited text format. Small logs only.
+	 * 
+	 * @param log
+	 * @param classifier
+	 * @return
+	 */
+	public String convertXLogToString(XLog log, XEventClassifier classifier) {
+		if (log.isEmpty()) {
+			return "";
+		}
+		StringBuilder output = new StringBuilder();
+		for (XTrace trace: log) {;
+			for (XEvent event: trace) {
+				output.append( classifier.getClassIdentity(event) );
+				output.append( DEFAULT_EVENT_DELIMITER);
+			}
+			int last = output.length();
+			output.delete(last-1,last);
+			output.append(DEFAULT_TRACE_DELIMITER);
+		}
+		return output.toString();
+	}
+
+	/**
+	 * Export an XLog in delimited text format using XEventNameClassifier. Small logs only.
+	 * 
+	 * @param log
+	 * @param classifier
+	 * @return
+	 */
+	public String convertXLogToString(XLog log) {
+		return convertXLogToString(log,NAME_CLASSIFIER);
+	}
 	
 }
