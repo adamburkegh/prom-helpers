@@ -278,6 +278,32 @@ public class PetriNetFragmentParserTest {
 		assertTrue( StochasticPetriNetUtils.areEqual(expected, net) );
 	}
 
+	@Test 
+	public void blogExample() {
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("I");
+		Transition ta = expected.addTransition("a");
+		Transition tb = expected.addTransition("b");
+		Place finalPlace = expected.addPlace("F");
+		expected.addArc(initialPlace, ta);
+		expected.addArc(initialPlace, tb);
+		expected.addArc(ta,finalPlace);
+		expected.addArc(tb,finalPlace);
+		PetriNetFragmentParser parser = new PetriNetFragmentParser();
+		// This is equivalent to a single net
+		//     [a] 
+		// I -/   \-> F
+		//    \[b]/
+		StochasticNet net = parser.createNet("net", 
+							 "I -> [a] -> F");
+		parser.addToNet(net, "I -> [b] -> F");
+		assertTrue( StochasticPetriNetUtils.areEqual(expected, net) );
+		// loop example
+		net = parser.createNet("net",
+		                     "I -> [a] -> p1 -> [b] -> F");
+		parser.addToNet(net,             "p1 -> [c] -> p1");
+	}
+	
 	@Test
 	public void multiEdge() {
 		StochasticNet expected = new StochasticNetImpl("expected");
