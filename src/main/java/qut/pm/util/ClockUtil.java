@@ -5,7 +5,7 @@ import java.util.Date;
 
 public class ClockUtil {
 
-	private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("YYYYMMDD-hhmmss");
+	private static SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("YYYYMMdd-hhmmss");
 	
 	public static long currentTimeMillis() {
 		return System.currentTimeMillis();
