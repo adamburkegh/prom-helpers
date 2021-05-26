@@ -79,19 +79,28 @@ public class StochasticPetriNetUtils {
 		return true;
 	}
 
+	public static boolean areEqual(Transition t1, Transition t2) {
+		if (t1 == null && t2 == null)
+			return true;
+		if (t1 == null || t2 == null)
+			return false;
+		if (t1.isInvisible() != t2.isInvisible())
+			return false;
+		return areEqual( (PetrinetNode)t1, t2);		
+	}
+	
 	public static boolean areEqual(TimedTransition t1, TimedTransition t2) {
 		if (t1 == null && t2 == null)
 			return true;
 		if (t1 == null || t2 == null)
 			return false;
 		
-		if ( Math.abs( t1.getWeight() - t2.getWeight() ) > EPSILON 
-			|| (!t1.getDistributionType().equals(t2.getDistributionType() )	) )
+		if ( Math.abs( t1.getWeight() - t2.getWeight() ) > EPSILON  
+			|| (!t1.getDistributionType().equals(t2.getDistributionType()) ) )
 		{
 			return false;
 		}
-		return areEqual( (PetrinetNode)t1, t2);
-
+		return areEqual( (Transition)t1, t2);
 	}
 	
 	public static boolean areEqual(PetrinetNode p1, PetrinetNode p2) {

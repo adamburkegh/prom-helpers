@@ -53,8 +53,9 @@ import qut.pm.spm.AcceptingStochasticNetImpl;
  * WEIGHTED_TRANSITION  :: WEIGHTED_TRAN_VALUE | WEIGHTED_TRAN_DEFAULT
  * WEIGHTED_TRAN_VALUE  :: '{' TRAN_LABEL WEIGHT '}'
  * WEIGHTED_TRAN_DEFAULT:: '{' TRAN_LABEL '}'
- * TRAN_LABEL			:: LABEL || ID_LABEL
- * ID_LABEL				:: LABEL ID_PREFIX ID
+ * TRAN_LABEL			:: TLABEL || ID_LABEL
+ * ID_LABEL				:: TLABEL ID_PREFIX ID
+ * TLABEL				:: LABEL || SILENT_LABEL
  * PLACE             	:: LABEL
  * EDGE              	:: '->'
  * SIMPLE_TRAN_START	:: '['
@@ -63,6 +64,7 @@ import qut.pm.spm.AcceptingStochasticNetImpl;
  * WEIGHT			 	:: NUM_STR
  * ID             		:: NUM_STR
  * NUM_STR				:: numeric string
+ * SILENT_LABEL         :: 'tau'
  * LABEL             	:: alphanumeric string
  * </pre>
  *
@@ -82,6 +84,7 @@ public class PetriNetFragmentParser{
 		WEIGHTED_TRAN_END("\\}"),
 		ID_PREFIX(ID_LEXEME),
 		EDGE("->"),
+		SILENT_LABEL("tau"),
 		LABEL("[a-zA-Z][a-zA-Z0-9]*"),
 		WEIGHT("[0-9]+\\.[0-9]+"),
 		ID("[0-9]+"),
@@ -90,7 +93,7 @@ public class PetriNetFragmentParser{
 		public static final TokenInfo[] LEX_VALUES = 
 				{SIMPLE_TRAN_START,SIMPLE_TRAN_END,
 				 WEIGHTED_TRAN_START,WEIGHTED_TRAN_END,
-						ID_PREFIX,EDGE,LABEL,WEIGHT,ID}; 
+						ID_PREFIX,EDGE,SILENT_LABEL,LABEL,WEIGHT,ID}; 
 		
 		private Pattern pattern;
 		
@@ -325,9 +328,14 @@ public class PetriNetFragmentParser{
 		nextToken();
 		String label = "";
 		String id = "";
+		boolean silentTransition = false;
 		double weight = 1.0;
 		if (lookahead.tokenInfo.equals(TokenInfo.LABEL)) {
 			label = tranLabel();
+			nextToken();
+		}else if(lookahead.tokenInfo.equals(TokenInfo.SILENT_LABEL)) {
+			label = tranLabel();
+			silentTransition = true;
 			nextToken();
 		}else {
 			throw new RuntimeException("Expected label, but found " + lookahead );
@@ -352,6 +360,7 @@ public class PetriNetFragmentParser{
 		}
 		if (transition == null) {
 			transition = net.addImmediateTransition(label, weight);
+			transition.setInvisible(silentTransition);
 			nodeLookup.put(label,transition);
 			nodeMapper.put(transition.getId(), genId);
 		}
@@ -389,8 +398,13 @@ public class PetriNetFragmentParser{
 		nextToken();
 		String label = "";
 		String id = "";
+		boolean silentTransition = false;
 		if (lookahead.tokenInfo.equals(TokenInfo.LABEL)) {
 			label = tranLabel();
+			nextToken();
+		}else if(lookahead.tokenInfo.equals(TokenInfo.SILENT_LABEL)) {
+			label = tranLabel();
+			silentTransition = true;
 			nextToken();
 		}else {
 			throw new RuntimeException("Expected label, but found " + lookahead );
@@ -410,6 +424,7 @@ public class PetriNetFragmentParser{
 		}
 		if (transition == null) {
 			transition = net.addTransition(label);
+			transition.setInvisible(silentTransition);
 			nodeLookup.put(label,transition);
 			String genId = genId(label, id);
 			nodeMapper.put(transition.getId(), genId);

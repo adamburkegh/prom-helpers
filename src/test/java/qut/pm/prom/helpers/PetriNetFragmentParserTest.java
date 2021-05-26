@@ -2,6 +2,7 @@ package qut.pm.prom.helpers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Set;
 
@@ -375,6 +376,70 @@ public class PetriNetFragmentParserTest {
 		parser.addToAcceptingNet(result, "Start -> [b] -> End");
 		assertTrue( StochasticPetriNetUtils.areEqual(expected, (StochasticNet)result.getNet()) );
 		checkMarkings(result, "Start", "End");
+	}
+
+	@Test
+	public void silentTransition() {
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("initialPlace");
+		Transition t1 = expected.addTransition("transition1");
+		Place mp = expected.addPlace("mp");
+		Transition t2 = expected.addTransition("tau");
+		t2.setInvisible(true);
+		Place finalPlace = expected.addPlace("finalPlace");
+		expected.addArc(initialPlace, t1);
+		expected.addArc(t1, mp);
+		expected.addArc(mp,t2);
+		expected.addArc(t2,finalPlace);
+		StochasticNet net = parser.createNet("ttf", 
+				"initialPlace -> [transition1] -> mp -> [tau] -> finalPlace");
+		assertTrue( StochasticPetriNetUtils.areEqual(expected, net) );
+	}
+
+	@Test
+	public void silentWeightedTransition() {
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("initialPlace");
+		Transition t1 = expected.addTransition("transition1");
+		Place mp = expected.addPlace("mp");
+		Transition t2 = expected.addTransition("tau");
+		t2.setInvisible(true);
+		Place finalPlace = expected.addPlace("finalPlace");
+		expected.addArc(initialPlace, t1);
+		expected.addArc(t1, mp);
+		expected.addArc(mp,t2);
+		expected.addArc(t2,finalPlace);
+		StochasticNet net = parser.createNet("ttf", 
+				"initialPlace -> {transition1} -> mp -> {tau} -> finalPlace");
+		assertTrue( StochasticPetriNetUtils.areEqual(expected, net) );
+	}
+	
+	@Test
+	public void silentTransitionsWithIds() {
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("initialPlace");
+		Transition t1 = expected.addTransition("transition1");
+		Place mp = expected.addPlace("mp");
+		Transition tau1 = expected.addTransition("tau");
+		tau1.setInvisible(true);
+		Place mp2 = expected.addPlace("mp2");
+		Transition tau2 = expected.addTransition("tau");
+		tau2.setInvisible(true);
+		Place finalPlace = expected.addPlace("finalPlace");
+		NodeMapper nm1 = new NodeMapper();
+		nm1.put(t1,"transition1");
+		nm1.put(tau1, "tau__1");
+		nm1.put(tau2, "tau__2");
+		expected.addArc(initialPlace, t1);
+		expected.addArc(t1, mp);
+		expected.addArc(mp,tau1);
+		expected.addArc(tau1,mp2);
+		expected.addArc(mp2,tau2);
+		expected.addArc(tau2,finalPlace);
+		StochasticNet net = new StochasticNetImpl("ttf");
+		NodeMapper nm2 = parser.addToNet(net, 
+				"initialPlace -> [transition1] -> mp -> [tau__1] -> mp2 -> [tau__2] -> finalPlace");
+		assertTrue( StochasticPetriNetUtils.areEqualWithDupes(expected, net, nm1, nm2) );
 	}
 
 	
