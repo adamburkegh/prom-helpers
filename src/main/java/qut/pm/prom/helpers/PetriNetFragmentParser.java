@@ -230,10 +230,11 @@ public class PetriNetFragmentParser{
 	 * @param anet
 	 * @param netText
 	 */
-	public void addToAcceptingNet(AcceptingPetriNet anet, String netText) {
+	public NodeMapper addToAcceptingNet(AcceptingPetriNet anet, String netText) {
 		net = (StochasticNet)anet.getNet();
-		addToNet(net,netText);
+		NodeMapper nm = addToNet(net,netText);
 		anet = markInitialFinalPlaces(net);
+		return nm;
 	}
 	
 	public StochasticNet createNetArgs(String label, String ... specs) {
