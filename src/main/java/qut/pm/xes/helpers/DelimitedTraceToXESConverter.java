@@ -134,7 +134,7 @@ public class DelimitedTraceToXESConverter {
 		throws IOException
 	{
 		byte[] encoded = Files.readAllBytes( Paths.get( filePath ));
-		return convertText( new String(encoded,StandardCharsets.UTF_8) );
+		return convertText( new String(encoded,StandardCharsets.UTF_8) , eventDelimiter, traceDelimiter);
 	}
 	
 	/**
