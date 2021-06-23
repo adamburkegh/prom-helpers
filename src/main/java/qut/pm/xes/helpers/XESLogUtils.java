@@ -14,6 +14,7 @@ import org.deckfour.xes.model.XLog;
 public class XESLogUtils {
 
 	public static final String XES_CONCEPT_NAME = "concept:name";
+	public static final String XES_FILE_SUFFIX = "xes";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 

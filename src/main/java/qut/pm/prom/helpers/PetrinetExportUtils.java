@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.processmining.framework.plugin.PluginContext;
 import org.processmining.models.connections.GraphLayoutConnection;
 import org.processmining.models.graphbased.directed.petrinet.Petrinet;
 import org.processmining.models.graphbased.directed.petrinet.PetrinetEdge;
@@ -19,11 +20,16 @@ import org.processmining.models.graphbased.directed.petrinet.StochasticNet.TimeU
 import org.processmining.models.graphbased.directed.petrinet.elements.Place;
 import org.processmining.models.graphbased.directed.petrinet.elements.TimedTransition;
 import org.processmining.models.graphbased.directed.petrinet.elements.Transition;
+import org.processmining.models.semantics.petrinet.Marking;
 import org.processmining.plugins.pnml.exporting.StochasticNetToPNMLConverter;
+import org.processmining.plugins.pnml.importing.StochasticNetDeserializer;
 import org.processmining.plugins.pnml.simple.PNMLRoot;
 import org.processmining.plugins.stochasticpetrinet.StochasticNetUtils;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
+
+import qut.pm.spm.AcceptingStochasticNet;
+import qut.pm.spm.AcceptingStochasticNetImpl;
 
 
 /**
@@ -133,5 +139,19 @@ public class PetrinetExportUtils {
 		return net;
 	}
 
+	public static AcceptingStochasticNet readStochasticPNMLModel(String pnfName) throws Exception {
+		StochasticNetDeserializer snd = new StochasticNetDeserializer();
+		Serializer serializer = new Persister();
+		File pnf = new File(pnfName);
+		PNMLRoot pnml = serializer.read(PNMLRoot.class, pnf);
+		PluginContext uipc = 
+				new HeadlessDefinitelyNotUIPluginContext(new ConsoleUIPluginContext(), "spn_converter");	
+		Object[] obj = snd.convertToNet(uipc, pnml, pnfName, true);
+		StochasticNet net = (StochasticNet)obj[0];
+		Marking initMarking = StochasticPetriNetUtils.guessInitialMarking(net);
+		AcceptingStochasticNet anet = new AcceptingStochasticNetImpl(pnfName, net, initMarking); 
+		return anet;
+	}
+	
     
 }
