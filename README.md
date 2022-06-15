@@ -16,7 +16,7 @@ PluginContext uipc =
 
 ## Petri net fragment parser
 
-Simplify unit tests by specifying unit tests in a simple ASCII visual syntax.
+Simplify unit tests by specifying Petri nets in a simple ASCII visual syntax.
 
 ```java
 // This is equivalent to a single net
