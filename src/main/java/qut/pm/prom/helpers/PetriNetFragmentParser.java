@@ -251,7 +251,7 @@ public class PetriNetFragmentParser{
 
 	private void tokenize(String str) {
 		tokens.clear();
-		String s = new String(str);
+		String s = str.trim();
 		while (!s.equals("")) {
 			boolean match = false;
 		    for (PetriNetFragmentParser.TokenInfo info : TokenInfo.LEX_VALUES) {

@@ -276,6 +276,23 @@ public class PetriNetFragmentParserTest {
 				"initialPlace -> [transition1] -> mp -> [transition2] -> finalPlace");
 		assertTrue( StochasticPetriNetUtils.areEqual(expected, net) );
 	}
+	
+	@Test
+	public void trailingWhitespace() {
+		StochasticNet expected = new StochasticNetImpl("expected");
+		Place initialPlace = expected.addPlace("initialPlace");
+		Transition t1 = expected.addTransition("transition1");
+		Place mp = expected.addPlace("mp");
+		Transition t2 = expected.addTransition("transition2");
+		Place finalPlace = expected.addPlace("finalPlace");
+		expected.addArc(initialPlace, t1);
+		expected.addArc(t1, mp);
+		expected.addArc(mp,t2);
+		expected.addArc(t2,finalPlace);
+		StochasticNet net = parser.createNet("ttf", 
+				"initialPlace -> [transition1] -> mp -> [transition2] -> finalPlace ");
+		assertTrue( StochasticPetriNetUtils.areEqual(expected, net) );
+	}
 
 	@Test 
 	public void blogExample() {
