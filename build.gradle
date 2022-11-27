@@ -6,7 +6,8 @@ plugins {
 
 repositories {
     ivy {
-        layout 'pattern' , {
+        name 'ivyPromReleases'
+        patternLayout{
             artifact '[organisation]/Releases/Packages/[module]/[revision]/[artifact]-[revision].[ext]'
             ivy '[organisation]/Releases/Packages/[module]/[revision]/ivy.xml'
         }
@@ -16,7 +17,8 @@ repositories {
         }
     }
     ivy {
-        layout 'pattern' , {
+        name 'ivyPromLibraries'
+        patternLayout{
             artifact '[module]/[revision]/[artifact]-[revision].[ext]'
             ivy '[module]/[revision]/ivy.xml'
         }
@@ -44,6 +46,19 @@ group = 'qut.pm'
 version = '0.8.7'
 description = 'prom-helpers'
 sourceCompatibility = '1.8'
+
+task(pnmlToDot, dependsOn: 'classes', type: JavaExec) {
+   main 'qut.pm.prom.helpers.PetriNetConverter'
+   classpath sourceSets.main.runtimeClasspath
+   args '-v -i PNML'
+}
+
+task(xesConverter, dependsOn: 'classes', type: JavaExec) {
+   main 'qut.pm.xes.helpers.XESConverterCommandLine'
+   classpath sourceSets.main.runtimeClasspath
+   jvmArgs '-Dlog4j.configurationFile=config/static/log4j2.xml'
+}
+
 
 publishing {
     repositories {
