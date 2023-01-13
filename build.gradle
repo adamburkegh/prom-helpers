@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    // Latest is implementation 'prom:StochasticPetriNets:6.10.170'
+    // Latest is implementation 'prom:StochasticPetriNets:6.12.5
     // but resolving that in the prom repo is not working, probably because 
     // they are zip files not in a specific revision directory
     api 'prom:StochasticPetriNets:latest'
