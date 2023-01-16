@@ -24,21 +24,24 @@ import qut.pm.spm.AcceptingStochasticNet;
 import qut.pm.spm.AcceptingStochasticNetImpl;
 
 /**
- * Allows the creation of Petri nets with short one line ASCII sketches, for example
+ * Allows the creation of Petri nets with short one line ASCII sketches, for 
+ * example 
  * <code>initialPlace -> [transition1] -> mp -> [transition2] -> finalPlace</code> 
  * 
- * Larger nets can be created with multiple invocations. Existing nodes will be looked up by 
- * label. 
+ * Larger nets can be created with multiple invocations. Existing nodes will be 
+ * looked up by label. 
  * 
- * Weighted transitions without weights, as in <code>{b}</code>, are defaulted to weight 1.0.
+ * Weighted transitions without weights, as in <code>{b}</code>, are defaulted 
+ * to weight 1.0.
  * 
  * Nodes with duplicate labels can be specified using a [tranLabel__id] syntax. 
  * 
- * Current limitations: SPN support is only weighted transitions. No time distributions or weighted 
- * arcs.
+ * Current limitations: SPN support is only weighted transitions. No time 
+ * distributions or weighted arcs.
  * 
- * Methods for creating an {@code AcceptingPetriNet} and {@code AcceptingStochasticNet} are also 
- * provided. These use naming conventions to identify initial and final markings per 
+ * Methods for creating an {@code AcceptingPetriNet} and 
+ * {@code AcceptingStochasticNet} are also provided. These use naming 
+ * conventions to identify initial and final markings per
  * {@link #createAcceptingNet(String, String)}.
  * 
  * Grammar
